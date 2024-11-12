@@ -114,7 +114,7 @@ export default function Home() {
           ),
         )}
       </ul>
-      {selectedParticipants.length && (
+      {!!selectedParticipants.length && (
         <h3 className={"text-center font-bold text-2xl mt-5"}>
           Congratulations
         </h3>
