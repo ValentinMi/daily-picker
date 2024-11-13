@@ -1,30 +1,37 @@
-"use client";
-
-import { useState } from "react";
 import { participants as participantsData } from "@/lib/participants";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
+
+type Participant = {
+  name: string;
+  present: boolean;
+};
+
+type Data = {
+  participants: Participant[];
+  selectedParticipants: string[];
+};
 
 export default function Home() {
-  const [participants, setParticipants] = useState(
-    participantsData.map((p) => ({ name: p, present: true })),
-  );
-  const [selectedParticipants, setSelectedParticipants] = useState<string[]>(
-    [],
-  );
+  const [data, setLocalStorage] = useLocalStorage<Data>({
+    participants: participantsData.map((p) => ({ name: p, present: true })),
+    selectedParticipants: [],
+  });
+
+  const { participants, selectedParticipants } = data;
 
   const handleParticipantAvailabilityChange = (name: string) => {
-    setParticipants(
-      participants.map((p) => {
-        if (p.name === name) {
-          return {
-            ...p,
-            present: !p.present,
-          };
-        }
-        return p;
-      }),
-    );
+    const updatedParticipants = participants.map((p) => {
+      if (p.name === name) {
+        return {
+          ...p,
+          present: !p.present,
+        };
+      }
+      return p;
+    });
+    setLocalStorage({ ...data, participants: updatedParticipants });
   };
 
   const handleAssign = () => {
@@ -40,7 +47,7 @@ export default function Home() {
       }
     }
 
-    setSelectedParticipants(selectedNames);
+    setLocalStorage({ ...data, selectedParticipants: selectedNames });
   };
 
   const handleReroll = (dayIndex: number) => {
@@ -60,7 +67,7 @@ export default function Home() {
       Math.random() * unselectedParticipants.length,
     );
     selection[dayIndex] = unselectedParticipants[randomIndex];
-    setSelectedParticipants(selection);
+    setLocalStorage({ ...data, selectedParticipants: selection });
   };
 
   return (
