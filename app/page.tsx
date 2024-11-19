@@ -1,3 +1,4 @@
+"use client";
 import { participants as participantsData } from "@/lib/participants";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
