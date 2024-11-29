@@ -3,6 +3,7 @@ import { participants as participantsData } from "@/lib/participants";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { useState } from "react";
 
 type Participant = {
   name: string;
@@ -11,16 +12,18 @@ type Participant = {
 
 type Data = {
   participants: Participant[];
-  selectedParticipants: string[];
 };
 
 export default function Home() {
   const [data, setLocalStorage] = useLocalStorage<Data>({
     participants: participantsData.map((p) => ({ name: p, present: true })),
-    selectedParticipants: [],
   });
 
-  const { participants, selectedParticipants } = data;
+  const [selectedParticipant, setSelectedParticipant] = useState<string | null>(
+    "",
+  );
+
+  const { participants } = data;
 
   const handleParticipantAvailabilityChange = (name: string) => {
     const updatedParticipants = participants.map((p) => {
@@ -36,39 +39,11 @@ export default function Home() {
   };
 
   const handleAssign = () => {
-    const selectedNames = [];
-    const namesCopy = participants.filter((p) => p.present).map((p) => p.name);
-
-    while (selectedNames.length < 5) {
-      const randomIndex = Math.floor(Math.random() * namesCopy.length);
-      selectedNames.push(namesCopy[randomIndex]);
-      const availableParticipants = participants.filter((p) => p.present);
-      if (availableParticipants.length >= 5) {
-        namesCopy.splice(randomIndex, 1);
-      }
-    }
-
-    setLocalStorage({ ...data, selectedParticipants: selectedNames });
-  };
-
-  const handleReroll = (dayIndex: number) => {
-    const selection = [...selectedParticipants];
-    let unselectedParticipants = participants
-      .filter((p) => p.present)
-      .map((p) => p.name)
-      .filter((name) => !selection.includes(name));
-
-    if (unselectedParticipants.length === 0) {
-      unselectedParticipants = participants
-        .filter((p) => p.present)
-        .map((p) => p.name);
-    }
-
+    const availableParticipants = participants.filter((p) => p.present);
     const randomIndex = Math.floor(
-      Math.random() * unselectedParticipants.length,
+      Math.random() * availableParticipants.length,
     );
-    selection[dayIndex] = unselectedParticipants[randomIndex];
-    setLocalStorage({ ...data, selectedParticipants: selection });
+    setSelectedParticipant(availableParticipants[randomIndex].name);
   };
 
   return (
@@ -76,7 +51,9 @@ export default function Home() {
       <h1 className={"font-bold text-2xl text-center"}>
         Opus Reco Daily Meeting Presenter Planning
       </h1>
-      <ul className={"flex gap-3 justify-evenly py-6 mt-6"}>
+      <ul
+        className={"flex gap-3 justify-evenly py-6 mt-6 flex-wrap m-auto w-2/3"}
+      >
         {participants.map((participant) => (
           <li key={participant.name} className={"flex flex-col items-center"}>
             <h2
@@ -102,28 +79,17 @@ export default function Home() {
         </Button>
       </div>
 
-      <ul className={"flex w-full justify-evenly py-6 mt-10"}>
-        {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"].map(
-          (day, i) => (
-            <li
-              key={day}
-              className={
-                "border-2 border-black p-5 flex flex-col items-center justify-around w-52 h-52"
-              }
-            >
-              <span className={"font-bold"}>{day}</span>
-              <span>{selectedParticipants[i]}</span>
-              {!!selectedParticipants[i] && (
-                <Button onClick={() => handleReroll(i)} size={"sm"}>
-                  Reroll
-                </Button>
-              )}
-            </li>
-          ),
+      <div className={"text-center mt-10 text-2xl flex flex-col items-center"}>
+        <span>And the winner is:</span>
+        {selectedParticipant && (
+          <span className={"text-3xl mt-10 animate-scale-unscale"}>
+            🎉 {selectedParticipant} 🎉
+          </span>
         )}
-      </ul>
-      {!!selectedParticipants.length && (
-        <h3 className={"text-center font-bold text-2xl mt-5"}>
+      </div>
+
+      {!!selectedParticipant && (
+        <h3 className={"text-center font-bold text-2xl mt-10"}>
           Congratulations
         </h3>
       )}
